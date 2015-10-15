@@ -18,7 +18,7 @@ class Exam
     protected $end_date = '';
     public $id;
 
-    function __construct($id)
+    function __construct($id = null)
     {
         $this->id = $id;
     }

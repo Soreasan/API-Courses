@@ -60,6 +60,18 @@ class Token
         $data = (array) $tokenData['data'];
         return $data['role'];
     }
+    public static function getUsernameFromToken()
+    {
+        $jwt = self::getBearerTokenFromHeader();
+        try{
+            $tokenData = (array) JWT::decode($jwt, self::$KEY, array('HS256'));
+        } catch (Exception $e) {
+            http_response_code(StatusCodes::UNAUTHORIZED);
+            exit("Invalid token.");
+        }
+        $data = (array) $tokenData['data'];
+        return $data['username'];
+    }
 
     private static function getBearerTokenFromHeader()
     {
