@@ -13,21 +13,25 @@ class CoursesController
     protected $request = array();
     protected $options = array(Http\Methods::GET, Http\Methods::POST, Http\Methods::PUT, Http\Methods::DELETE, Http\Methods::OPTIONS);
 
+    //This is basically a select statement
     public function get($id)
     {
         return new Course($id);
     }
 
+    //update
     public function put($id)
     {
 
     }
 
+    //create or update, primarily creation
     public function post($id)
     {
 
     }
 
+    //delete, deletes stuff....
     public function delete($crn)
     {
         $role = Token::getRoleFromToken();
