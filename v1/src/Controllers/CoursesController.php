@@ -29,6 +29,22 @@ class CoursesController
             exit("Non-Faculty members, are not allowed to update Courses.");
         } else {
 
+            $input = (object) json_decode(file_get_contents('php://input'));
+
+            $input = Cast::cast("\\TestingCenter\\Models\\Course", $input);
+
+            if (is_null($input)) {
+                http_response_code(Http\StatusCodes::BAD_REQUEST);
+                exit("No data to post.");
+            }
+
+            $pdo = DatabaseConnection::getInstance();
+
+            // database update
+            //$statement = $pdo->prepare("DELETE FROM Courses where courseCRN = :courseCRN");
+            //$data = array("courseCRN" => $crn);
+            //$statement->execute($data);
+            //returns http OK
         }
     }
 
@@ -41,7 +57,22 @@ class CoursesController
             http_response_code(Http\StatusCodes::UNAUTHORIZED);
             exit("Non-Faculty members, are not allowed to create Courses.");
         } else {
+            $input = (object) json_decode(file_get_contents('php://input'));
 
+            $input = Cast::cast("\\TestingCenter\\Models\\Course", $input);
+
+            if (is_null($input)) {
+                http_response_code(Http\StatusCodes::BAD_REQUEST);
+                exit("No data to post.");
+            }
+
+            $pdo = DatabaseConnection::getInstance();
+
+            //database insert
+            //$statement = $pdo->prepare("DELETE FROM Courses where courseCRN = :courseCRN");
+            //$data = array("courseCRN" => $crn);
+            //$statement->execute($data);
+            //returns http OK
         }
     }
 
