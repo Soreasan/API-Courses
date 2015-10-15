@@ -1,6 +1,0 @@
-<IfModule mod_rewrite.c>
-RewriteBase /~iamcaptaincode/api/v1
-RewriteCond %{REQUEST_FILENAME} !-f
-#RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule (.*)$ api.php?request=$1 [QSA,L,PT,NS]
-</IfModule>
