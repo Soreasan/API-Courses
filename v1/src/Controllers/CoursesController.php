@@ -83,12 +83,16 @@ class CoursesController
         if ($role != Token::ROLE_STUDENT) {
             http_response_code(Http\StatusCodes::UNAUTHORIZED);
             exit("Non-Faculty members, are not allowed to delete Courses.");
-        } else {
+        }
 
+        if (!isset($crn[0])) {
+            http_response_code(Http\StatusCodes::BAD_REQUEST);
+            exit("CourseCRN Required");
+        } else {
             $pdo = DatabaseConnection::getInstance();
 
             $statement = $pdo->prepare("DELETE FROM Courses where courseCRN = :courseCRN");
-            $data = array("courseCRN" => $crn);
+            $data = array("courseCRN" => $crn[0]);
             $statement->execute($data);
         }
     }
