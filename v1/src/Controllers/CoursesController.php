@@ -22,13 +22,27 @@ class CoursesController
     //update
     public function put($id)
     {
+        //Requires same authentication as delete so I copied the code up
+        $role = Token::getRoleFromToken();
+        if ($role != Token::ROLE_STUDENT) {
+            http_response_code(Http\StatusCodes::UNAUTHORIZED);
+            exit("Non-Faculty members, are not allowed to update Courses.");
+        } else {
 
+        }
     }
 
     //create or update, primarily creation
     public function post($id)
     {
+        //Requires same authentication as delete so I copied the code up
+        $role = Token::getRoleFromToken();
+        if ($role != Token::ROLE_STUDENT) {
+            http_response_code(Http\StatusCodes::UNAUTHORIZED);
+            exit("Non-Faculty members, are not allowed to create Courses.");
+        } else {
 
+        }
     }
 
     //delete, deletes stuff....
