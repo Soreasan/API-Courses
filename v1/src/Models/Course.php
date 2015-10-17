@@ -13,8 +13,33 @@ class Course
     protected $courseTitle = '';
     public $id;
 
-    function __construct($id)
+//    function __construct($id)
+//    {
+//        $this->id = $id;
+//    }
+
+    function getCourseNumber()
     {
-        $this->id = $id;
+        return $this->courseNumber;
+    }
+
+    function getCourseTitle()
+    {
+        return $this->courseTitle;
+    }
+
+    function getCourseCRN()
+    {
+        return $this->courseCRN;
+    }
+
+    function getCourseYear()
+    {
+        return $this->courseYear;
+    }
+
+    function getCourseSemester()
+    {
+        return $this->courseSemester;
     }
 }

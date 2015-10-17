@@ -28,25 +28,24 @@ class CoursesController
         if ($role != Token::ROLE_STUDENT) {
             http_response_code(Http\StatusCodes::UNAUTHORIZED);
             exit("Non-Faculty members, are not allowed to update Courses.");
-        } else {
-
-            $input = (object) json_decode(file_get_contents('php://input'));
-
-            $input = Cast::cast("\\TestingCenter\\Models\\Course", $input);
-
-            if (is_null($input)) {
-                http_response_code(Http\StatusCodes::BAD_REQUEST);
-                exit("No data to post.");
-            }
-
-            $pdo = DatabaseConnection::getInstance();
-
-            // database update
-            //$statement = $pdo->prepare("DELETE FROM Courses where courseCRN = :courseCRN");
-            //$data = array("courseCRN" => $crn);
-            //$statement->execute($data);
-            //returns http OK
         }
+
+        $input = (object) json_decode(file_get_contents('php://input'));
+
+        $input = Cast::cast("\\TestingCenter\\Models\\Course", $input);
+
+        if (is_null($input)) {
+            http_response_code(Http\StatusCodes::BAD_REQUEST);
+            exit("No data to post.");
+        }
+
+        $pdo = DatabaseConnection::getInstance();
+
+        // database update
+        //$statement = $pdo->prepare("DELETE FROM Courses where courseCRN = :courseCRN");
+        //$data = array("courseCRN" => $crn);
+        //$statement->execute($data);
+        //returns http OK
     }
 
     //create or update, primarily creation
@@ -57,24 +56,39 @@ class CoursesController
         if ($role != Token::ROLE_STUDENT) {
             http_response_code(Http\StatusCodes::UNAUTHORIZED);
             exit("Non-Faculty members, are not allowed to create Courses.");
-        } else {
-            $input = (object) json_decode(file_get_contents('php://input'));
-
-            $input = Cast::cast("\\TestingCenter\\Models\\Course", $input);
-
-            if (is_null($input)) {
-                http_response_code(Http\StatusCodes::BAD_REQUEST);
-                exit("No data to post.");
-            }
-
-            $pdo = DatabaseConnection::getInstance();
-
-            //database insert
-            //$statement = $pdo->prepare("DELETE FROM Courses where courseCRN = :courseCRN");
-            //$data = array("courseCRN" => $crn);
-            //$statement->execute($data);
-            //returns http OK
         }
+
+        $json_input = (object) json_decode(file_get_contents('php://input')); //Decode raw payload / json
+        $input = Cast::cast("\\TestingCenter\\Models\\Course", $json_input); //Cast to Course Data Object
+
+        if (is_null($input)) {
+            http_response_code(Http\StatusCodes::BAD_REQUEST);
+            exit("No data to post.");
+        }
+
+        $pdo = DatabaseConnection::getInstance();
+
+        //Check if CourseData is new (courseNumber and/or courseTitle)
+        $sql = $pdo->prepare("SELECT * FROM CourseData WHERE courseNumber = :courseNumber OR courseTitle = :courseTitle");
+        $data = array("courseNumber" => $input->getCourseNumber(), "courseTitle" => $input->getCourseTitle());
+        $sql->execute($data);
+        $sqlResults = $sql->fetchAll();
+
+        //get $courseData_id
+        if (empty($sqlResults)) {
+            $sql = $pdo->prepare("INSERT INTO CourseData (courseNumber, courseTitle) VALUES (:courseNumber, :courseTitle) ");
+            $data = array("courseNumber" => $input->getCourseNumber(), "courseTitle" => $input->getCourseTitle());
+            $sql->execute($data);
+
+            $courseData_id = $pdo->lastInsertId();
+        } else {
+            $courseData_id = (int) $sqlResults[0]["courseData_id"];
+        }
+
+        //Create new Courses
+        $sql = $pdo->prepare("INSERT INTO Courses (courseCRN, courseYear, courseSemester, courseData_id) VALUES (:courseCRN, :courseYear, :courseSemester, :courseData_id)");
+        $data = array("courseCRN" => $input->getCourseCRN(), "courseYear" => $input->getCourseYear(), "courseSemester" => $input->getCourseSemester(), "courseData_id" => $courseData_id);
+        $sql->execute($data);
     }
 
     //delete, deletes stuff....
