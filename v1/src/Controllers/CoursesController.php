@@ -5,6 +5,7 @@ namespace TestingCenter\Controllers;
 use TestingCenter\Http;
 use TestingCenter\Models\Course;
 use TestingCenter\Models\Token;
+use TestingCenter\Utilities\Cast;
 use TestingCenter\Utilities\DatabaseConnection;
 
 class CoursesController
@@ -94,6 +95,7 @@ class CoursesController
             $statement = $pdo->prepare("DELETE FROM Courses where courseCRN = :courseCRN");
             $data = array("courseCRN" => $crn[0]);
             $statement->execute($data);
+            exit("CourseCRN to Delete: " . $crn[0]); //just a test statment
         }
     }
 
