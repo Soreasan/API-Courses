@@ -30,26 +30,25 @@ class CoursesController
             exit("Non-Faculty members, are not allowed to update Courses.");
         }
 
-        $input = (object) json_decode(file_get_contents('php://input'));
-
-        $input = Cast::cast("\\TestingCenter\\Models\\Course", $input);
-
-        if (is_null($input)) {
+        if (!isset($id[0])) {
             http_response_code(Http\StatusCodes::BAD_REQUEST);
-            exit("No data to post.");
+            exit("CoursesID Required");
+        } else {
+
+            $json_input = (object) json_decode(file_get_contents('php://input')); //Decode raw payload / json
+            $input = Cast::cast("\\TestingCenter\\Models\\Course", $json_input); //Cast to Course Data Object
+
+            if (is_null($input)) {
+                http_response_code(Http\StatusCodes::BAD_REQUEST);
+                exit("No data to post.");
+            }
+
+            $pdo = DatabaseConnection::getInstance();
         }
-
-        $pdo = DatabaseConnection::getInstance();
-
-        // database update
-        //$statement = $pdo->prepare("DELETE FROM Courses where courseCRN = :courseCRN");
-        //$data = array("courseCRN" => $crn);
-        //$statement->execute($data);
-        //returns http OK
     }
 
     //create or update, primarily creation
-    public function post($id)
+    public function post()
     {
         //Requires same authentication as delete so I copied the code up
         $role = Token::getRoleFromToken();
@@ -68,14 +67,15 @@ class CoursesController
 
         $pdo = DatabaseConnection::getInstance();
 
-        //Check if CourseData is new (courseNumber and/or courseTitle)
-        $sql = $pdo->prepare("SELECT * FROM CourseData WHERE courseNumber = :courseNumber OR courseTitle = :courseTitle");
+        //Check if CourseData already exists (courseNumber or courseTitle)
+        $sql = $pdo->prepare("SELECT courseData_id FROM CourseData WHERE courseNumber = :courseNumber OR courseTitle = :courseTitle");
         $data = array("courseNumber" => $input->getCourseNumber(), "courseTitle" => $input->getCourseTitle());
         $sql->execute($data);
         $sqlResults = $sql->fetchAll();
 
-        //get $courseData_id
+        //get $courseData_id -- create new CourseData if needed
         if (empty($sqlResults)) {
+            // CourseData doesnt exist. Make one.
             $sql = $pdo->prepare("INSERT INTO CourseData (courseNumber, courseTitle) VALUES (:courseNumber, :courseTitle) ");
             $data = array("courseNumber" => $input->getCourseNumber(), "courseTitle" => $input->getCourseTitle());
             $sql->execute($data);
