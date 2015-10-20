@@ -5,15 +5,15 @@
  * Date: 10/7/2015
  * Time: 4:02 PM
  */
-
 namespace TestingCenter\Controllers;
+
 use Firebase\JWT;
 use TestingCenter\Http\StatusCodes;
 use TestingCenter\Models\Token;
 
-
 class TokensController
 {
+
     public function post()
     {
         $username = $_POST['username'];
@@ -36,35 +36,30 @@ class TokensController
 
         $bind = @ldap_bind($ad, "{$username}@{$serverConfig["FQDN"]}", $password);
 
-        if (!$bind)
-        {
+        if (!$bind) {
             http_response_code(StatusCodes::UNAUTHORIZED);
             die("Your credentials were rejected by the server.");
         }
 
-       //Check group membership
+        //Check group membership
         $userdn = $this->getDN($ad, $username, $serverConfig['baseDn']);
 
-        if ($userdn == '')
-        {
+        if ($userdn == '') {
             http_response_code(StatusCodes::INTERNAL_SERVER_ERROR);
             die("Failure to query LDAP");
         }
 
         $role = '';
 
-        if (strpos($userdn, "OU=Students"))
-        {
+        if (strpos($userdn, "OU=Students")) {
             $role = Token::ROLE_STUDENT;
         }
 
-        if (strpos($userdn, "OU=Faculty"))
-        {
+        if (strpos($userdn, "OU=faculty")) {
             $role = Token::ROLE_FACULTY;
         }
 
-        if (strpos($userdn, "OU=Tech"))
-        {
+        if (strpos($userdn, "OU=Tech")) {
             $role = Token::ROLE_AIDE;
         }
 
@@ -83,19 +78,17 @@ class TokensController
      *          The base DN for the directory.
      * @return string
      */
-   private function getDN($ad, $samaccountname, $basedn)
+    private function getDN($ad, $samaccountname, $basedn)
     {
         $result = ldap_search($ad, $basedn, "(samaccountname={$samaccountname})", array(
             'dn'
         ));
-        if (! $result)
-        {
+        if (!$result) {
             return '';
         }
 
         $entries = ldap_get_entries($ad, $result);
-        if ($entries['count'] > 0)
-        {
+        if ($entries['count'] > 0) {
             return $entries[0]['dn'];
         }
 
