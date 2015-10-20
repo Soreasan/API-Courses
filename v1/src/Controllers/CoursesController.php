@@ -17,10 +17,13 @@ class CoursesController
     //This is basically a select statement
     public function get($id)
     {
+        $json_input = (object) json_decode(file_get_contents('php://input')); //Decode raw payload / json
+        $input = Cast::cast("\\TestingCenter\\Models\\Course", $json_input); //Cast to Course Data Object
+
         $pdo = DatabaseConnection::getInstance();
 
         //Check if CourseData already exists (courseNumber or courseTitle)
-        $sql = $pdo->prepare("SELECT courseData_id FROM CourseData WHERE courseData_id = :courseData_id");
+        $sql = $pdo->prepare("SELECT courseData_id FROM CourseData WHERE courseData_id = $id");
         $data = array("courseNumber" => $input->getCourseNumber(), "courseTitle" => $input->getCourseTitle());
         $sql->execute($data);
         $sqlResults = $sql->fetchAll();
