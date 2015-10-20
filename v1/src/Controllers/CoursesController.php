@@ -25,7 +25,7 @@ class CoursesController
     {
         //Requires same authentication as delete so I copied the code up
         $role = Token::getRoleFromToken();
-        if ($role != Token::ROLE_STUDENT) {
+        if ($role != Token::ROLE_FACULTY) {
             http_response_code(Http\StatusCodes::UNAUTHORIZED);
             exit("Non-Faculty members, are not allowed to update Courses.");
         }
@@ -52,7 +52,7 @@ class CoursesController
     {
         //Requires same authentication as delete so I copied the code up
         $role = Token::getRoleFromToken();
-        if ($role != Token::ROLE_STUDENT) {
+        if ($role != Token::ROLE_FACULTY) {
             http_response_code(Http\StatusCodes::UNAUTHORIZED);
             exit("Non-Faculty members, are not allowed to create Courses.");
         }
@@ -95,7 +95,7 @@ class CoursesController
     public function delete($crn)
     {
         $role = Token::getRoleFromToken();
-        if ($role != Token::ROLE_STUDENT) {
+        if ($role != Token::ROLE_FACULTY) {
             http_response_code(Http\StatusCodes::UNAUTHORIZED);
             exit("Non-Faculty members, are not allowed to delete Courses.");
         }
