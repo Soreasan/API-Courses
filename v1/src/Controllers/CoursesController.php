@@ -17,7 +17,17 @@ class CoursesController
     //This is basically a select statement
     public function get($id)
     {
-        return new Course($id);
+        $pdo = DatabaseConnection::getInstance();
+
+        //Check if CourseData already exists (courseNumber or courseTitle)
+        $sql = $pdo->prepare("SELECT courseData_id FROM CourseData WHERE courseData_id = :courseData_id");
+        $data = array("courseNumber" => $input->getCourseNumber(), "courseTitle" => $input->getCourseTitle());
+        $sql->execute($data);
+        $sqlResults = $sql->fetchAll();
+
+        //Displays requested data
+        echo $sqlResults;
+        #return new Course($id);
     }
 
     //update
