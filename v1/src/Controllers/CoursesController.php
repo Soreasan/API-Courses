@@ -14,22 +14,22 @@ class CoursesController
     protected $request = array();
     protected $options = array(Http\Methods::GET, Http\Methods::POST, Http\Methods::PUT, Http\Methods::DELETE, Http\Methods::OPTIONS);
 
-    public function get($id) //select
+    public function get($crn) //select
     {
-        $json_input = (object) json_decode(file_get_contents('php://input')); //Decode raw payload / json
-        $input = Cast::cast("\\TestingCenter\\Models\\Course", $json_input); //Cast to Course Data Object
-
         $pdo = DatabaseConnection::getInstance();
 
-        //Check if CourseData already exists (courseNumber or courseTitle)
-        $sql = $pdo->prepare("SELECT courseData_id FROM CourseData WHERE courseData_id = $id");
-        $data = array("courseNumber" => $input->getCourseNumber(), "courseTitle" => $input->getCourseTitle());
-        $sql->execute($data);
-        $sqlResults = $sql->fetchAll();
-
-        //Displays requested data
-        echo $sqlResults;
-        #return new Course($id);
+        if (!isset($crn[0])) {
+            $sql = $pdo->prepare("SELECT c.courseCRN, c.courseYear, c.courseSemester, cd.courseNumber, cd.courseTitle FROM Courses c JOIN CourseData cd ON c.courseData_id = cd.courseData_id");
+            $sql->execute();
+            $sqlResults = $sql->fetchAll(\PDO::FETCH_ASSOC);
+            return $sqlResults;
+        } else {
+            $sql = $pdo->prepare("SELECT c.courseCRN, c.courseYear, c.courseSemester, cd.courseNumber, cd.courseTitle FROM Courses c JOIN CourseData cd ON c.courseData_id = cd.courseData_id WHERE c.courseCRN = :courseCRN");
+            $data = array("courseCRN" => $crn[0]);
+            $sql->execute($data);
+            $sqlResults = $sql->fetchAll(\PDO::FETCH_ASSOC);
+            return $sqlResults;
+        }
     }
 
     public function put() //update
@@ -128,7 +128,7 @@ class CoursesController
         $sql = $pdo->prepare("SELECT courseData_id FROM CourseData WHERE courseNumber = :courseNumber OR courseTitle = :courseTitle");
         $data = array("courseNumber" => $input->getCourseNumber(), "courseTitle" => $input->getCourseTitle());
         $sql->execute($data);
-        $sqlResults = $sql->fetchAll();
+        $sqlResults = $sql->fetchAll(\PDO::FETCH_ASSOC);
 
         //get $courseData_id -- create new CourseData if needed
         if (empty($sqlResults)) {
@@ -146,7 +146,7 @@ class CoursesController
     {
         $doesCourseExist = $this->checkIfCourseExists($pdo, $input);
 
-        if ($doesCourseExist) {
+        if (!$doesCourseExist) {
             // CourseCRN doesnt exist. Make one.
             $sql = $pdo->prepare("INSERT INTO Courses (courseCRN, courseYear, courseSemester, courseData_id) VALUES (:courseCRN, :courseYear, :courseSemester, :courseData_id)");
             $data = array("courseCRN" => $input->getCourseCRN(), "courseYear" => $input->getCourseYear(), "courseSemester" => $input->getCourseSemester(), "courseData_id" => $courseData_id);
@@ -177,7 +177,7 @@ class CoursesController
         $sql = $pdo->prepare("SELECT courseCRN FROM Courses WHERE courseCRN = :courseCRN");
         $data = array("courseCRN" => $input->getCourseCRN());
         $sql->execute($data);
-        $sqlResults = $sql->fetchAll();
+        $sqlResults = $sql->fetchAll(\PDO::FETCH_ASSOC);
 
         if (empty($sqlResults)) {
             return FALSE;
