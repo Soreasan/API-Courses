@@ -14,8 +14,7 @@ class CoursesController
     protected $request = array();
     protected $options = array(Http\Methods::GET, Http\Methods::POST, Http\Methods::PUT, Http\Methods::DELETE, Http\Methods::OPTIONS);
 
-    //This is basically a select statement
-    public function get($id)
+    public function get($id) //select
     {
         $json_input = (object) json_decode(file_get_contents('php://input')); //Decode raw payload / json
         $input = Cast::cast("\\TestingCenter\\Models\\Course", $json_input); //Cast to Course Data Object
@@ -33,8 +32,7 @@ class CoursesController
         #return new Course($id);
     }
 
-    //update
-    public function put($id)
+    public function put() //update
     {
         //Requires same authentication as delete so I copied the code up
         $role = Token::getRoleFromToken();
@@ -43,25 +41,20 @@ class CoursesController
             exit("Non-Faculty members, are not allowed to update Courses.");
         }
 
-        if (!isset($id[0])) {
-            http_response_code(Http\StatusCodes::BAD_REQUEST);
-            exit("CoursesID Required");
-        } else {
+        //Decode raw payload / json & Cast to Course Data Object
+        $json_input = (object) json_decode(file_get_contents('php://input'));
+        $input = Cast::cast("\\TestingCenter\\Models\\Course", $json_input);
 
-            $json_input = (object) json_decode(file_get_contents('php://input')); //Decode raw payload / json
-            $input = Cast::cast("\\TestingCenter\\Models\\Course", $json_input); //Cast to Course Data Object
+        $this->validateInput($input);
 
-            if (is_null($input)) {
-                http_response_code(Http\StatusCodes::BAD_REQUEST);
-                exit("No data to post.");
-            }
+        $pdo = DatabaseConnection::getInstance();
 
-            $pdo = DatabaseConnection::getInstance();
-        }
+        $courseData_id = $this->getCourseData_Id($pdo, $input);
+
+        $this->updateCourse($pdo, $input, $courseData_id);
     }
 
-    //create or update, primarily creation
-    public function post()
+    public function post() //create/insert
     {
         //Requires same authentication as delete so I copied the code up
         $role = Token::getRoleFromToken();
@@ -70,28 +63,20 @@ class CoursesController
             exit("Non-Faculty members, are not allowed to create Courses.");
         }
 
-        $json_input = (object) json_decode(file_get_contents('php://input')); //Decode raw payload / json
-        $input = Cast::cast("\\TestingCenter\\Models\\Course", $json_input); //Cast to Course Data Object
+        //Decode raw payload / json & Cast to Course Data Object
+        $json_input = (object) json_decode(file_get_contents('php://input'));
+        $input = Cast::cast("\\TestingCenter\\Models\\Course", $json_input);
 
-        $this->validatePOSTInput($input);
+        $this->validateInput($input);
 
         $pdo = DatabaseConnection::getInstance();
 
-        //Check if CourseData already exists (courseNumber or courseTitle)
         $courseData_id = $this->getCourseData_Id($pdo, $input);
 
-        try {
-            //Create new Courses
-            $sql = $pdo->prepare("INSERT INTO Courses (courseCRN, courseYear, courseSemester, courseData_id) VALUES (:courseCRN, :courseYear, :courseSemester, :courseData_id)");
-            $data = array("courseCRN" => $input->getCourseCRN(), "courseYear" => $input->getCourseYear(), "courseSemester" => $input->getCourseSemester(), "courseData_id" => $courseData_id);
-            $sql->execute($data);
-        } catch (PDOException $e) {
-            echo "Error: " . $e;
-        }
+        $this->createNewCourse($pdo, $input, $courseData_id);
     }
 
-    //delete, deletes stuff....
-    public function delete($crn)
+    public function delete($crn) //delete
     {
         $role = Token::getRoleFromToken();
         if ($role != Token::ROLE_FACULTY) {
@@ -117,7 +102,7 @@ class CoursesController
         header("Allow: " . implode(", ", $this->options));
     }
 
-    private function validatePOSTInput($input)
+    private function validateInput($input)
     {
         if (empty($input->getCourseCRN())) {
             http_response_code(Http\StatusCodes::BAD_REQUEST);
@@ -139,6 +124,7 @@ class CoursesController
 
     private function getCourseData_Id($pdo, $input)
     {
+        //Check if CourseData already exists (courseNumber or courseTitle)
         $sql = $pdo->prepare("SELECT courseData_id FROM CourseData WHERE courseNumber = :courseNumber OR courseTitle = :courseTitle");
         $data = array("courseNumber" => $input->getCourseNumber(), "courseTitle" => $input->getCourseTitle());
         $sql->execute($data);
@@ -150,10 +136,53 @@ class CoursesController
             $sql = $pdo->prepare("INSERT INTO CourseData (courseNumber, courseTitle) VALUES (:courseNumber, :courseTitle) ");
             $data = array("courseNumber" => $input->getCourseNumber(), "courseTitle" => $input->getCourseTitle());
             $sql->execute($data);
-
             return $pdo->lastInsertId();
         } else {
             return (int) $sqlResults[0]["courseData_id"];
+        }
+    }
+
+    private function createNewCourse($pdo, $input, $courseData_id)
+    {
+        $doesCourseExist = $this->checkIfCourseExists($pdo, $input);
+
+        if ($doesCourseExist) {
+            // CourseCRN doesnt exist. Make one.
+            $sql = $pdo->prepare("INSERT INTO Courses (courseCRN, courseYear, courseSemester, courseData_id) VALUES (:courseCRN, :courseYear, :courseSemester, :courseData_id)");
+            $data = array("courseCRN" => $input->getCourseCRN(), "courseYear" => $input->getCourseYear(), "courseSemester" => $input->getCourseSemester(), "courseData_id" => $courseData_id);
+            $sql->execute($data);
+        } else {
+            http_response_code(Http\StatusCodes::BAD_REQUEST);
+            exit("Duplicate CourseCRN");
+        }
+    }
+
+    private function updateCourse($pdo, $input, $courseData_id)
+    {
+        $doesCourseExist = $this->checkIfCourseExists($pdo, $input);
+
+        if ($doesCourseExist) {
+            // CourseCRN doesnt exist. Make one.
+            $sql = $pdo->prepare("UPDATE Courses SET courseYear = :courseYear, courseSemester = :courseSemester, courseData_id = :courseData_id WHERE courseCRN = :courseCRN");
+            $data = array("courseCRN" => $input->getCourseCRN(), "courseYear" => $input->getCourseYear(), "courseSemester" => $input->getCourseSemester(), "courseData_id" => $courseData_id);
+            $sql->execute($data);
+        } else {
+            http_response_code(Http\StatusCodes::BAD_REQUEST);
+            exit("CourseCRN Not Found");
+        }
+    }
+
+    private function checkIfCourseExists($pdo, $input)
+    {
+        $sql = $pdo->prepare("SELECT courseCRN FROM Courses WHERE courseCRN = :courseCRN");
+        $data = array("courseCRN" => $input->getCourseCRN());
+        $sql->execute($data);
+        $sqlResults = $sql->fetchAll();
+
+        if (empty($sqlResults)) {
+            return FALSE;
+        } else {
+            return TRUE;
         }
     }
 }
