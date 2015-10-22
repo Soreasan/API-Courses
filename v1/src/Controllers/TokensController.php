@@ -5,15 +5,16 @@
  * Date: 10/7/2015
  * Time: 4:02 PM
  */
+
 namespace TestingCenter\Controllers;
 
 use Firebase\JWT;
 use TestingCenter\Http\StatusCodes;
 use TestingCenter\Models\Token;
 
+
 class TokensController
 {
-
     public function post()
     {
         $username = $_POST['username'];
@@ -42,7 +43,7 @@ class TokensController
         }
 
         //Check group membership
-        $userdn = $this->getDN($ad, $username, $serverConfig['baseDn']);
+        $userdn = strtolower($this->getDN($ad, $username, $serverConfig['baseDn']));
 
         if ($userdn == '') {
             http_response_code(StatusCodes::INTERNAL_SERVER_ERROR);
@@ -51,16 +52,22 @@ class TokensController
 
         $role = '';
 
-        if (strpos($userdn, "OU=Students")) {
+
+        if (strpos($userdn, "ou=students")) {
             $role = Token::ROLE_STUDENT;
         }
 
-        if (strpos($userdn, "OU=faculty")) {
+        if (strpos($userdn, "ou=faculty")) {
             $role = Token::ROLE_FACULTY;
         }
 
-        if (strpos($userdn, "OU=Tech")) {
+        if (strpos($userdn, "ou=tech")) {
             $role = Token::ROLE_AIDE;
+        }
+
+        if ($role == '') {
+            http_response_code(StatusCodes::FORBIDDEN);
+            exit("Not authorized");
         }
 
         return (new Token())->buildToken($role, $username);

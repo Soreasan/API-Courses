@@ -93,7 +93,6 @@ class CoursesController
             $statement = $pdo->prepare("DELETE FROM Courses where courseCRN = :courseCRN");
             $data = array("courseCRN" => $crn[0]);
             $statement->execute($data);
-            //exit("CourseCRN to Delete: " . $crn[0]); //just a test statment
         }
     }
 

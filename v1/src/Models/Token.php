@@ -8,7 +8,10 @@
 
 namespace TestingCenter\Models;
 
+use Firebase\JWT\BeforeValidException;
+use Firebase\JWT\ExpiredException;
 use \Firebase\JWT\JWT;
+use Firebase\JWT\SignatureInvalidException;
 use TestingCenter\Http\StatusCodes;
 
 class Token
@@ -26,19 +29,19 @@ class Token
 
     public function buildToken($role, $username)
     {
-        $tokenId    = uniqid("", true);//TODO: Reset with MCrypt Enabled. //base64_encode(mcrypt_create_iv(32));
-        $issuedAt   = time();
-        $notBefore  = $issuedAt + 10;                   //Adding 10 seconds to compensate for clock-skew
-        $expire     = $notBefore + self::$lengthValid;  // Expiration time
+        $tokenId = uniqid("", true);//TODO: Reset with MCrypt Enabled. //base64_encode(mcrypt_create_iv(32));
+        $issuedAt = time();
+        $notBefore = $issuedAt + 10;                   //Adding 10 seconds to compensate for clock-skew
+        $expire = $notBefore + self::$lengthValid;  // Expiration time
         $serverName = "http://icarus.cs.weber.edu";
         $data = [
-            'iat'  => $issuedAt,         // Issued at: time when the token was generated
-            'jti'  => $tokenId,          // Json Token Id: an unique identifier for the token
-            'iss'  => $serverName,       // Issuer
-            'nbf'  => $notBefore,        // Not before
-            'exp'  => $expire,           // Expire
+            'iat' => $issuedAt,         // Issued at: time when the token was generated
+            'jti' => $tokenId,          // Json Token Id: an unique identifier for the token
+            'iss' => $serverName,       // Issuer
+            'nbf' => $notBefore,        // Not before
+            'exp' => $expire,           // Expire
             'data' => [                  // Data related to the signer user
-                'role'     => $role,
+                'role' => $role,
                 'username' => $username, // User name
             ]
         ];
@@ -48,28 +51,40 @@ class Token
         return $this->token;
     }
 
+    private static function extractTokenData($jwt)
+    {
+        try {
+            $tokenData = (array)JWT::decode($jwt, self::$KEY, array('HS256'));
+        } catch (Exception $e) {
+            http_response_code(StatusCodes::UNAUTHORIZED);
+            exit("Invalid token.");
+        } catch (BeforeValidException $e) {
+            http_response_code(StatusCodes::UNAUTHORIZED);
+            exit("Invalid token.");
+        } catch (ExpiredException $e) {
+            http_response_code(StatusCodes::UNAUTHORIZED);
+            exit("Token Expired.");
+        } catch (SignatureInvalidException $e) {
+            http_response_code(StatusCodes::UNAUTHORIZED);
+            exit("Invalid token.");
+        }
+
+        return $tokenData;
+    }
+
     public static function getRoleFromToken()
     {
         $jwt = self::getBearerTokenFromHeader();
-        try{
-            $tokenData = (array) JWT::decode($jwt, self::$KEY, array('HS256'));
-        } catch (Exception $e) {
-            http_response_code(StatusCodes::UNAUTHORIZED);
-            exit("Invalid token.");
-        }
-        $data = (array) $tokenData['data'];
+        $tokenData = static::extractTokenData($jwt);
+        $data = (array)$tokenData['data'];
         return $data['role'];
     }
+
     public static function getUsernameFromToken()
     {
         $jwt = self::getBearerTokenFromHeader();
-        try{
-            $tokenData = (array) JWT::decode($jwt, self::$KEY, array('HS256'));
-        } catch (Exception $e) {
-            http_response_code(StatusCodes::UNAUTHORIZED);
-            exit("Invalid token.");
-        }
-        $data = (array) $tokenData['data'];
+        $tokenData = static::extractTokenData($jwt);
+        $data = (array)$tokenData['data'];
         return $data['username'];
     }
 
@@ -77,20 +92,18 @@ class Token
     {
         $headers = apache_request_headers();
 
-        if(!isset($headers))
-        {
+        if (!isset($headers)) {
             http_response_code(StatusCodes::BAD_REQUEST);
             exit("No headers set.");
         }
 
-        if (!array_key_exists("Authorization", $headers))
-        {
+        if (!array_key_exists("Authorization", $headers)) {
             http_response_code(StatusCodes::UNAUTHORIZED);
             exit("No credentials provided.");
         }
 
         $authHeader = $headers['Authorization'];
-        list($jwt) = sscanf( $authHeader, 'Bearer %s');
+        list($jwt) = sscanf($authHeader, 'Bearer %s');
 
         return $jwt;
     }
