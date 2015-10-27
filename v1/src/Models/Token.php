@@ -31,7 +31,7 @@ class Token
     {
         $tokenId = uniqid("", true);//TODO: Reset with MCrypt Enabled. //base64_encode(mcrypt_create_iv(32));
         $issuedAt = time();
-        $notBefore = $issuedAt + 10;                   //Adding 10 seconds to compensate for clock-skew
+        $notBefore = $issuedAt;                   //Adding 10 seconds to compensate for clock-skew
         $expire = $notBefore + self::$lengthValid;  // Expiration time
         $serverName = "http://icarus.cs.weber.edu";
         $data = [
@@ -57,7 +57,7 @@ class Token
             $tokenData = (array)JWT::decode($jwt, self::$KEY, array('HS256'));
         } catch (Exception $e) {
             http_response_code(StatusCodes::UNAUTHORIZED);
-            exit("Invalid token.");
+            exit("Invalid token. Error: $e");
         } catch (BeforeValidException $e) {
             http_response_code(StatusCodes::UNAUTHORIZED);
             exit("Invalid token.");
@@ -72,9 +72,10 @@ class Token
         return $tokenData;
     }
 
-    public static function getRoleFromToken()
+    public static function getRoleFromToken($jwt = null)
     {
-        $jwt = self::getBearerTokenFromHeader();
+        if ($jwt == null)
+            $jwt = self::getBearerTokenFromHeader();
         $tokenData = static::extractTokenData($jwt);
         $data = (array)$tokenData['data'];
         return $data['role'];

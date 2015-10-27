@@ -3,7 +3,6 @@
 namespace TestingCenter\Controllers;
 
 use TestingCenter\Http;
-use TestingCenter\Models\Course;
 use TestingCenter\Models\Token;
 use TestingCenter\Utilities\Cast;
 use TestingCenter\Utilities\DatabaseConnection;
@@ -21,13 +20,13 @@ class CoursesController
         if (!isset($crn[0])) {
             $sql = $pdo->prepare("SELECT c.courseCRN, c.courseYear, c.courseSemester, cd.courseNumber, cd.courseTitle FROM Courses c JOIN CourseData cd ON c.courseData_id = cd.courseData_id");
             $sql->execute();
-            $sqlResults = $sql->fetchAll(\PDO::FETCH_ASSOC);
+            $sqlResults = $sql->fetchAll(\PDO::FETCH_CLASS, 'TestingCenter\Models\Course');
             return $sqlResults;
         } else {
             $sql = $pdo->prepare("SELECT c.courseCRN, c.courseYear, c.courseSemester, cd.courseNumber, cd.courseTitle FROM Courses c JOIN CourseData cd ON c.courseData_id = cd.courseData_id WHERE c.courseCRN = :courseCRN");
             $data = array("courseCRN" => $crn[0]);
             $sql->execute($data);
-            $sqlResults = $sql->fetchAll(\PDO::FETCH_ASSOC);
+            $sqlResults = $sql->fetchAll(\PDO::FETCH_CLASS, 'TestingCenter\Models\Course');
             return $sqlResults;
         }
     }
