@@ -28,20 +28,6 @@ class CoursesControllerTest extends \PHPUnit_Framework_TestCase // backslash is 
 		}
 	}
 
-    public function testValidGetOne()
-    {
-        echo __FUNCTION__ . PHP_EOL;
-
-        $controller = new CoursesController();
-        $uri = array(21108);
-        $results = $controller->get($uri);
-
-        $this->assertEquals(1, count($results));
-
-		foreach ($results as $model) {
-			$this->privateTestModel($model);
-		}
-    }
 
 	public function testValidPut()
 	{
@@ -65,18 +51,54 @@ class CoursesControllerTest extends \PHPUnit_Framework_TestCase // backslash is 
 				  "courseTitle": "Server-Side Web Development"
 				}';
 
-		$url = "http://icarus.cs.weber.edu/~ap23106/cs3620/Assignments/TestingCenter/courses/21108";
+		$url = "http://icarus.cs.weber.edu/~ap23106/cs3620/Assignments/TestingCenter/courses/";
 
 		$output = Testing::callAPIOverHTTP($url, Methods::POST, $body, $token, Testing::JSON);
+
+		//print_r($output);
 
 		$this->assertNotFalse($output); //False on error, otherwise it's the raw results. You should be able to json_decode to read the response.
 
 		//$this->assertJsonStringEqualsJsonString(""); //Compare against expected JSON object. You  could also do other tests.
 	}
 
+	public function testValidGetOne()
+	{
+		echo __FUNCTION__ . PHP_EOL;
+
+		$controller = new CoursesController();
+		$uri = array(21108);
+		$results = $controller->get($uri);
+
+		$this->assertEquals(1, count($results));
+
+		foreach ($results as $model) {
+			$this->privateTestModel($model);
+		}
+	}
+
+
 	public function testValidDelete()
 	{
         echo __FUNCTION__ . PHP_EOL;
+		$token = $this->privateGetFacultyToken();
+
+		$body = '{
+				  "instructor": "1",
+				  "courseCRN": "21108",
+				  "courseYear": "2015",
+				  "courseSemester": "Fall",
+				  "courseNumber": "3620",
+				  "courseTitle": "Server-Side Web Development"
+				}';
+
+		$url = "http://icarus.cs.weber.edu/~ap23106/cs3620/Assignments/TestingCenter/courses/21108";
+
+		$output = Testing::callAPIOverHTTP($url, Methods::DELETE, $body, $token, Testing::JSON);
+
+		//print_r($output);
+
+		$this->assertNotFalse($output); //False on error, otherwise it's the raw results. You should be able to json_decode to read the response.
 
 
 	}
