@@ -51,7 +51,7 @@ class CoursesControllerTest extends \PHPUnit_Framework_TestCase // backslash is 
 				  "courseTitle": "Server-Side Web Development"
 				}';
 
-		$url = "http://icarus.cs.weber.edu/~ap23106/cs3620/Assignments/TestingCenter/courses/";
+		$url = "http://icarus.cs.weber.edu/~ss29870/api/v1/courses/";
 
 		$output = Testing::callAPIOverHTTP($url, Methods::POST, $body, $token, Testing::JSON);
 
@@ -82,13 +82,18 @@ class CoursesControllerTest extends \PHPUnit_Framework_TestCase // backslash is 
     {
         echo __FUNCTION__ . PHP_EOL;
 
-		$controller = new CoursesController();
-		$uri = array("I want in");
-		$results = $controller->get($uri);
+		$token = '';
 
-		//print_r($results);
+		$body = '';
 
-		$this->assertEquals("Course CRN not found ", $results);
+		$url = "http://icarus.cs.weber.edu/~ss29870/api/v1/courses/676879687676";
+
+		$output = Testing::callAPIOverHTTP($url, Methods::GET, $body, $token, Testing::JSON);
+
+		print_r($output);
+
+
+		$this->assertEquals("Course CRN not found ", $output);
 
 
     }
