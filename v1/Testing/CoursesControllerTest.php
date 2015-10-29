@@ -9,10 +9,6 @@ use TestingCenter\Http\Methods;
 
 class CoursesControllerTest extends \PHPUnit_Framework_TestCase // backslash is in global namespace
 {
-
-//	/**
-//	 * @depends testPost
-//	 */
 	public function testValidGetAll()
 	{
         echo __FUNCTION__ . PHP_EOL;
@@ -83,19 +79,12 @@ class CoursesControllerTest extends \PHPUnit_Framework_TestCase // backslash is 
         echo __FUNCTION__ . PHP_EOL;
 
 		$token = '';
-
 		$body = '';
-
-		$url = "http://icarus.cs.weber.edu/~ss29870/api/v1/courses/676879687676";
+		$url = "http://icarus.cs.weber.edu/~ap23106/cs3620/Assignments/TestingCenter/courses/ThisIsAnInvalidCourseID";
 
 		$output = Testing::callAPIOverHTTP($url, Methods::GET, $body, $token, Testing::JSON);
 
-		print_r($output);
-
-
-		$this->assertEquals("Course CRN not found ", $output);
-
-
+		$this->assertEquals("Course CRN not found", $output);
     }
 // need to test invalid credentials
 // need to test invailid data type

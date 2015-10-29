@@ -21,8 +21,8 @@ class CoursesController
             $sql = $pdo->prepare("SELECT c.courseCRN, c.courseYear, c.courseSemester, cd.courseNumber, cd.courseTitle FROM Courses c JOIN CourseData cd ON c.courseData_id = cd.courseData_id");
             $sql->execute();
             $sqlResults = $sql->fetchAll(\PDO::FETCH_CLASS, 'TestingCenter\Models\Course');
-            if( count($sqlResults) == 0) {
-                exit("No Course found");
+            if (count($sqlResults) == 0) {
+                exit("No Courses found");
             }
             return $sqlResults;
         } else {
@@ -30,7 +30,7 @@ class CoursesController
             $data = array("courseCRN" => $crn[0]);
             $sql->execute($data);
             $sqlResults = $sql->fetchAll(\PDO::FETCH_CLASS, 'TestingCenter\Models\Course');
-            if( count($sqlResults) == 0) {
+            if (count($sqlResults) == 0) {
                 exit("Course CRN not found");
             }
             return $sqlResults;
