@@ -78,9 +78,49 @@ class CoursesControllerTest extends \PHPUnit_Framework_TestCase // backslash is 
 	}
 
 
+    public function testInvalidGetOne()
+    {
+        echo __FUNCTION__ . PHP_EOL;
+
+		$controller = new CoursesController();
+		$uri = array("I want in");
+		$results = $controller->get($uri);
+
+		//print_r($results);
+
+		$this->assertEquals("Course CRN not found ", $results);
+
+
+    }
+// need to test invalid credentials
+// need to test invailid data type
+// the data not on database
+    public function testInvalidPut()
+    {
+        echo __FUNCTION__ . PHP_EOL;
+
+
+    }
+// need to test invalid credentials
+// need to test invailid data type
+    public function testInvalidPost()
+    {
+        echo __FUNCTION__ . PHP_EOL;
+
+
+    }
+// need to test invalid credentials
+// need to test invailid data type
+    public function testInvalidDelete()
+    {
+        echo __FUNCTION__ . PHP_EOL;
+
+
+    }
+
 	public function testValidDelete()
 	{
-        echo __FUNCTION__ . PHP_EOL;
+		echo __FUNCTION__ . PHP_EOL;
 		$token = $this->privateGetFacultyToken();
 
 		$body = '{
@@ -102,34 +142,6 @@ class CoursesControllerTest extends \PHPUnit_Framework_TestCase // backslash is 
 
 
 	}
-
-    public function testInvalidGet()
-    {
-        echo __FUNCTION__ . PHP_EOL;
-
-
-    }
-
-    public function testInvalidPut()
-    {
-        echo __FUNCTION__ . PHP_EOL;
-
-
-    }
-
-    public function testInvalidPost()
-    {
-        echo __FUNCTION__ . PHP_EOL;
-
-
-    }
-
-    public function testInvalidDelete()
-    {
-        echo __FUNCTION__ . PHP_EOL;
-
-
-    }
 
 	private function privateTestModel(Course $model)
 	{
