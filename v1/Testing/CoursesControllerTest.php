@@ -1,5 +1,5 @@
 <?php
-//Course Test
+
 namespace TestingCenter\Testing;
 
 use TestingCenter\Controllers\CoursesController;
@@ -13,23 +13,48 @@ class CoursesControllerTest extends \PHPUnit_Framework_TestCase // backslash is 
 //	/**
 //	 * @depends testPost
 //	 */
-	public function testGet()
+	public function testValidGetAll()
 	{
-		$controller = new CoursesController();
+        echo __FUNCTION__ . PHP_EOL;
+
+        $controller = new CoursesController();
 		$uri = array();
 		$results = $controller->get($uri);
 
-		$numModels = count($results);
-		$this->assertGreaterThan(0, $numModels);
+		$this->assertGreaterThan(0, count($results));
 
 		foreach ($results as $model) {
 			$this->privateTestModel($model);
 		}
 	}
 
-	public function testPost()
+    public function testValidGetOne()
+    {
+        echo __FUNCTION__ . PHP_EOL;
+
+        $controller = new CoursesController();
+        $uri = array(21108);
+        $results = $controller->get($uri);
+
+        $this->assertEquals(1, count($results));
+
+		foreach ($results as $model) {
+			$this->privateTestModel($model);
+		}
+    }
+
+	public function testValidPut()
 	{
-		$token = $this->privateGetFacultyToken();
+        echo __FUNCTION__ . PHP_EOL;
+
+
+	}
+
+	public function testValidPost()
+	{
+        echo __FUNCTION__ . PHP_EOL;
+
+        $token = $this->privateGetFacultyToken();
 
 		$body = '{
 				  "instructor": "1",
@@ -44,12 +69,45 @@ class CoursesControllerTest extends \PHPUnit_Framework_TestCase // backslash is 
 
 		$output = Testing::callAPIOverHTTP($url, Methods::POST, $body, $token, Testing::JSON);
 
-		//echo $output;
-
 		$this->assertNotFalse($output); //False on error, otherwise it's the raw results. You should be able to json_decode to read the response.
 
 		//$this->assertJsonStringEqualsJsonString(""); //Compare against expected JSON object. You  could also do other tests.
 	}
+
+	public function testValidDelete()
+	{
+        echo __FUNCTION__ . PHP_EOL;
+
+
+	}
+
+    public function testInvalidGet()
+    {
+        echo __FUNCTION__ . PHP_EOL;
+
+
+    }
+
+    public function testInvalidPut()
+    {
+        echo __FUNCTION__ . PHP_EOL;
+
+
+    }
+
+    public function testInvalidPost()
+    {
+        echo __FUNCTION__ . PHP_EOL;
+
+
+    }
+
+    public function testInvalidDelete()
+    {
+        echo __FUNCTION__ . PHP_EOL;
+
+
+    }
 
 	private function privateTestModel(Course $model)
 	{
