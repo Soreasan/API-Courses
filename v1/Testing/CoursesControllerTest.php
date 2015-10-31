@@ -6,86 +6,118 @@ use TestingCenter\Controllers\CoursesController;
 use TestingCenter\Models\Course;
 use TestingCenter\Utilities\Testing;
 use TestingCenter\Http\Methods;
+use TestingCenter\Utilities\Cast;
 
 class CoursesControllerTest extends \PHPUnit_Framework_TestCase // backslash is in global namespace
 {
-	public function testValidGetAll()
+	public function testValidPost()
 	{
-        echo __FUNCTION__ . PHP_EOL;
+		echo __FUNCTION__ . PHP_EOL;
 
-        $controller = new CoursesController();
-		$uri = array();
-		$results = $controller->get($uri);
+		$token = $this->privateGetFacultyToken();
 
-		$this->assertGreaterThan(0, count($results));
+		$body = '{
+				  "instructor": "1",
+				  "courseCRN": "99999",
+				  "courseYear": "2999",
+				  "courseSemester": "Fall",
+				  "courseNumber": "9999",
+				  "courseTitle": "Test Course"
+				}';
 
-		foreach ($results as $model) {
-			$this->privateTestModel($model);
-		}
+		$url = "http://icarus.cs.weber.edu/~ap23106/cs3620/Assignments/TestingCenter/courses/";
+
+		$output = Testing::callAPIOverHTTP($url, Methods::POST, $body, $token, Testing::JSON);
+
+		$this->assertNotFalse($output); //False on error, otherwise it's the raw results.
 	}
-
 
 	public function testValidPut()
 	{
         echo __FUNCTION__ . PHP_EOL;
 
-
-	}
-
-	public function testValidPost()
-	{
-        echo __FUNCTION__ . PHP_EOL;
-
         $token = $this->privateGetFacultyToken();
 
-		$body = '{
+        $body = '{
 				  "instructor": "1",
-				  "courseCRN": "21108",
-				  "courseYear": "2015",
+				  "courseCRN": "99999",
+				  "courseYear": "3000",
 				  "courseSemester": "Fall",
-				  "courseNumber": "3620",
-				  "courseTitle": "Server-Side Web Development"
+				  "courseNumber": "9999",
+				  "courseTitle": "Test Course"
 				}';
 
-		$url = "http://icarus.cs.weber.edu/~ss29870/api/v1/courses/";
+        $url = "http://icarus.cs.weber.edu/~ap23106/cs3620/Assignments/TestingCenter/courses/";
 
-		$output = Testing::callAPIOverHTTP($url, Methods::POST, $body, $token, Testing::JSON);
+        $output = Testing::callAPIOverHTTP($url, Methods::PUT, $body, $token, Testing::JSON);
 
-		//print_r($output);
-
-		$this->assertNotFalse($output); //False on error, otherwise it's the raw results. You should be able to json_decode to read the response.
-
-		//$this->assertJsonStringEqualsJsonString(""); //Compare against expected JSON object. You  could also do other tests.
+        $this->assertNotFalse($output); //False on error, otherwise it's the raw results.
 	}
 
 	public function testValidGetOne()
 	{
 		echo __FUNCTION__ . PHP_EOL;
 
-		$controller = new CoursesController();
-		$uri = array(21108);
-		$results = $controller->get($uri);
+        $token = '';
+        $body = '';
+        $url = "http://icarus.cs.weber.edu/~ap23106/cs3620/Assignments/TestingCenter/courses/99999";
 
-		$this->assertEquals(1, count($results));
+        $output = Testing::callAPIOverHTTP($url, Methods::GET, $body, $token, Testing::JSON);
 
-		foreach ($results as $model) {
-			$this->privateTestModel($model);
-		}
+        //Test output by converting to a course object
+        //$json_output = (object) json_decode($output);
+        //print_r($json_output);
+        //$course = Cast::cast("\\TestingCenter\\Models\\Course", $json_output);
+        //print_r($course);
+        //$this->privateTestModel($course);
+
+		$this->assertEquals(1, count($output)); //Test there is only one returned
+
+        $json_test_string = "[{\"instructor\":\"\",\"courseCRN\":\"99999\",\"courseYear\":\"3000\",\"courseSemester\":\"Fall\",\"courseNumber\":\"9999\",\"courseTitle\":\"Test Course\"}]";
+        $this->assertJsonStringEqualsJsonString($json_test_string, $output); //Compare against expected JSON object.
 	}
 
+    public function testValidGetAll()
+    {
+        echo __FUNCTION__ . PHP_EOL;
+
+        $controller = new CoursesController();
+        $uri = array();
+        $results = $controller->get($uri);
+
+        $this->assertGreaterThan(0, count($results));
+
+        foreach ($results as $model) {
+            $this->privateTestModel($model);
+        }
+    }
+
+    public function testValidDelete()
+    {
+        echo __FUNCTION__ . PHP_EOL;
+
+        $token = $this->privateGetFacultyToken();
+        $body = '';
+        $url = "http://icarus.cs.weber.edu/~ap23106/cs3620/Assignments/TestingCenter/courses/99999";
+
+        $output = Testing::callAPIOverHTTP($url, Methods::DELETE, $body, $token, Testing::JSON);
+
+        $this->assertNotFalse($output); //False on error, otherwise it's the raw results.
+    }
 
     public function testInvalidGetOne()
     {
         echo __FUNCTION__ . PHP_EOL;
 
-		$token = '';
-		$body = '';
-		$url = "http://icarus.cs.weber.edu/~ap23106/cs3620/Assignments/TestingCenter/courses/ThisIsAnInvalidCourseID";
+        $token = '';
+        $body = '';
+        $url = "http://icarus.cs.weber.edu/~ap23106/cs3620/Assignments/TestingCenter/courses/ThisIsAnInvalidCourseID";
 
-		$output = Testing::callAPIOverHTTP($url, Methods::GET, $body, $token, Testing::JSON);
+        $output = Testing::callAPIOverHTTP($url, Methods::GET, $body, $token, Testing::JSON);
 
-		$this->assertEquals("Course CRN not found", $output);
+        $this->assertEquals("Course CRN not found", $output);
     }
+
 // need to test invalid credentials
 // need to test invailid data type
 // the data not on database
@@ -111,31 +143,6 @@ class CoursesControllerTest extends \PHPUnit_Framework_TestCase // backslash is 
 
 
     }
-
-	public function testValidDelete()
-	{
-		echo __FUNCTION__ . PHP_EOL;
-		$token = $this->privateGetFacultyToken();
-
-		$body = '{
-				  "instructor": "1",
-				  "courseCRN": "21108",
-				  "courseYear": "2015",
-				  "courseSemester": "Fall",
-				  "courseNumber": "3620",
-				  "courseTitle": "Server-Side Web Development"
-				}';
-
-		$url = "http://icarus.cs.weber.edu/~ap23106/cs3620/Assignments/TestingCenter/courses/21108";
-
-		$output = Testing::callAPIOverHTTP($url, Methods::DELETE, $body, $token, Testing::JSON);
-
-		//print_r($output);
-
-		$this->assertNotFalse($output); //False on error, otherwise it's the raw results. You should be able to json_decode to read the response.
-
-
-	}
 
 	private function privateTestModel(Course $model)
 	{
