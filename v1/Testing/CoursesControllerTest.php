@@ -73,7 +73,7 @@ class CoursesControllerTest extends \PHPUnit_Framework_TestCase // backslash is 
 
 		$this->assertEquals(1, count($output)); //Test there is only one returned
 
-        $json_test_string = "[{\"instructor\":\"\",\"courseCRN\":\"99999\",\"courseYear\":\"3000\",\"courseSemester\":\"Fall\",\"courseNumber\":\"9999\",\"courseTitle\":\"Test Course\"}]";
+        $json_test_string = '[{"instructor":"","courseCRN":"99999","courseYear":"3000","courseSemester":"Fall","courseNumber":"9999","courseTitle":"Test Course"}]';
         $this->assertJsonStringEqualsJsonString($json_test_string, $output); //Compare against expected JSON object.
 	}
 
@@ -92,19 +92,6 @@ class CoursesControllerTest extends \PHPUnit_Framework_TestCase // backslash is 
         }
     }
 
-    public function testValidDelete()
-    {
-        echo __FUNCTION__ . PHP_EOL;
-
-        $token = $this->privateGetFacultyToken();
-        $body = '';
-        $url = "http://icarus.cs.weber.edu/~ap23106/cs3620/Assignments/TestingCenter/courses/99999";
-
-        $output = Testing::callAPIOverHTTP($url, Methods::DELETE, $body, $token, Testing::JSON);
-
-        $this->assertNotFalse($output); //False on error, otherwise it's the raw results.
-    }
-
     public function testInvalidGetOne()
     {
         echo __FUNCTION__ . PHP_EOL;
@@ -118,22 +105,85 @@ class CoursesControllerTest extends \PHPUnit_Framework_TestCase // backslash is 
         $this->assertEquals("Course CRN not found", $output);
     }
 
-// need to test invalid credentials
-// need to test invailid data type
-// the data not on database
-    public function testInvalidPut()
+    public function testInvalidPutInvalidCredentials()
     {
         echo __FUNCTION__ . PHP_EOL;
 
+        $token = $this->privateGetStudentToken(); //get students token to test credential failure
 
+        $body = '{
+				  "instructor": "1",
+				  "courseCRN": "99999",
+				  "courseYear": "3000",
+				  "courseSemester": "Fall",
+				  "courseNumber": "9999",
+				  "courseTitle": "Test Course"
+				}';
+
+        $url = "http://icarus.cs.weber.edu/~ap23106/cs3620/Assignments/TestingCenter/courses/";
+
+        $output = Testing::callAPIOverHTTP($url, Methods::PUT, $body, $token, Testing::JSON);
+
+        $this->assertEquals("Non-Faculty members, are not allowed to update Courses.", $output);
     }
-// need to test invalid credentials
-// need to test invailid data type
-    public function testInvalidPost()
+
+    public function testInvalidPutInvalidCourse()
     {
         echo __FUNCTION__ . PHP_EOL;
 
+        $token = $this->privateGetFacultyToken();
 
+        $body = '{
+				  "instructor": "1",
+				  "courseCRN": "ThisIsAnInvalidCourseID",
+				  "courseYear": "3000",
+				  "courseSemester": "Fall",
+				  "courseNumber": "9999",
+				  "courseTitle": "Test Course"
+				}';
+
+        $url = "http://icarus.cs.weber.edu/~ap23106/cs3620/Assignments/TestingCenter/courses/";
+
+        $output = Testing::callAPIOverHTTP($url, Methods::PUT, $body, $token, Testing::JSON);
+
+        $this->assertEquals("CourseCRN Not Found", $output);
+    }
+
+    public function testInvalidPostInvalidCredentials()
+    {
+        echo __FUNCTION__ . PHP_EOL;
+
+        $token = $this->privateGetStudentToken(); //get students token to test credential failure
+
+        $body = '{
+				  "instructor": "1",
+				  "courseCRN": "99999",
+				  "courseYear": "3000",
+				  "courseSemester": "Fall",
+				  "courseNumber": "9999",
+				  "courseTitle": "Test Course"
+				}';
+
+        $url = "http://icarus.cs.weber.edu/~ap23106/cs3620/Assignments/TestingCenter/courses/";
+
+        $output = Testing::callAPIOverHTTP($url, Methods::POST, $body, $token, Testing::JSON);
+
+        $this->assertEquals("Non-Faculty members, are not allowed to create Courses.", $output);
+    }
+
+    public function testInvalidPostInvalidData()
+    {
+        echo __FUNCTION__ . PHP_EOL;
+
+        $token = $this->privateGetFacultyToken();
+
+        $body = '{}';
+
+        $url = "http://icarus.cs.weber.edu/~ap23106/cs3620/Assignments/TestingCenter/courses/";
+
+        $output = Testing::callAPIOverHTTP($url, Methods::POST, $body, $token, Testing::JSON);
+
+        $this->assertEquals("CourseCRN Required", $output);
     }
 // need to test invalid credentials
 // need to test invailid data type
@@ -142,6 +192,19 @@ class CoursesControllerTest extends \PHPUnit_Framework_TestCase // backslash is 
         echo __FUNCTION__ . PHP_EOL;
 
 
+    }
+
+    public function testValidDelete()
+    {
+        echo __FUNCTION__ . PHP_EOL;
+
+        $token = $this->privateGetFacultyToken();
+        $body = '';
+        $url = "http://icarus.cs.weber.edu/~ap23106/cs3620/Assignments/TestingCenter/courses/99999";
+
+        $output = Testing::callAPIOverHTTP($url, Methods::DELETE, $body, $token, Testing::JSON);
+
+        $this->assertNotFalse($output); //False on error, otherwise it's the raw results.
     }
 
 	private function privateTestModel(Course $model)
