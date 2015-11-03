@@ -6,7 +6,6 @@ use TestingCenter\Controllers\CoursesController;
 use TestingCenter\Models\Course;
 use TestingCenter\Utilities\Testing;
 use TestingCenter\Http\Methods;
-use TestingCenter\Utilities\Cast;
 
 class CoursesControllerTest extends \PHPUnit_Framework_TestCase // backslash is in global namespace
 {
@@ -33,7 +32,6 @@ class CoursesControllerTest extends \PHPUnit_Framework_TestCase // backslash is 
 
 		$this->assertNotFalse($output); //False on error, otherwise it's the raw results.
 	}
-
 
     /**
      * @depends testValidPost
@@ -73,13 +71,6 @@ class CoursesControllerTest extends \PHPUnit_Framework_TestCase // backslash is 
 
         $output = Testing::callAPIOverHTTP($url, Methods::GET, $body, $token, Testing::JSON);
 
-        //Test output by converting to a course object
-        //$json_output = (object) json_decode($output);
-        //print_r($json_output);
-        //$course = Cast::cast("\\TestingCenter\\Models\\Course", $json_output);
-        //print_r($course);
-        //$this->privateTestModel($course);
-
 		$this->assertEquals(1, count($output)); //Test there is only one returned
 
         $json_test_string = '[{"instructor":"","courseCRN":"99999","courseYear":"3000","courseSemester":"Fall","courseNumber":"9999","courseTitle":"Test Course"}]';
@@ -111,7 +102,7 @@ class CoursesControllerTest extends \PHPUnit_Framework_TestCase // backslash is 
 
         $output = Testing::callAPIOverHTTP($url, Methods::GET, $body, $token, Testing::JSON);
 
-        $this->assertEquals("Course CRN not found", $output);
+        $this->assertEquals("CourseCRN not found", $output);
     }
 
     public function testInvalidPutInvalidCredentials()
@@ -180,7 +171,7 @@ class CoursesControllerTest extends \PHPUnit_Framework_TestCase // backslash is 
         $this->assertEquals("Non-Faculty members, are not allowed to create Courses.", $output);
     }
 
-    public function testInvalidPostInvalidData()
+    public function testInvalidPostMissingData()
     {
         echo __FUNCTION__ . PHP_EOL;
 
@@ -193,27 +184,6 @@ class CoursesControllerTest extends \PHPUnit_Framework_TestCase // backslash is 
         $output = Testing::callAPIOverHTTP($url, Methods::POST, $body, $token, Testing::JSON);
 
         $this->assertEquals("CourseCRN Required", $output);
-    }
-// need to test invalid credentials
-// need to test invailid data type
-    public function testInvalidDelete()
-    {
-        echo __FUNCTION__ . PHP_EOL;
-
-
-    }
-
-    public function testInvalidDeleteInvalidCredentials()
-    {
-        echo __FUNCTION__ . PHP_EOL;
-
-        $token = $this->privateGetStudentToken(); //get students token to test credential failure
-        $body = '';
-        $url = $this->base_api_url."/courses/99999";
-
-        $output = Testing::callAPIOverHTTP($url, Methods::DELETE, $body, $token, Testing::JSON);
-
-        $this->assertEquals("Non-Faculty members, are not allowed to delete Courses.", $output);
     }
 
     /**
@@ -230,6 +200,48 @@ class CoursesControllerTest extends \PHPUnit_Framework_TestCase // backslash is 
         $output = Testing::callAPIOverHTTP($url, Methods::DELETE, $body, $token, Testing::JSON);
 
         $this->assertNotFalse($output); //False on error, otherwise it's the raw results.
+    }
+
+    /**
+     * @depends testValidDelete
+     */
+    public function testInvalidDeleteInvalidCRN()
+    {
+        echo __FUNCTION__ . PHP_EOL;
+
+        $token = $this->privateGetFacultyToken();
+        $body = '';
+        $url = $this->base_api_url."/courses/99999";
+
+        $output = Testing::callAPIOverHTTP($url, Methods::DELETE, $body, $token, Testing::JSON);
+
+        $this->assertEquals("CourseCRN not found", $output);
+    }
+
+    public function testInvalidDeleteMissingCRN()
+    {
+        echo __FUNCTION__ . PHP_EOL;
+
+        $token = $this->privateGetFacultyToken();
+        $body = '';
+        $url = $this->base_api_url."/courses/";
+
+        $output = Testing::callAPIOverHTTP($url, Methods::DELETE, $body, $token, Testing::JSON);
+
+        $this->assertEquals("CourseCRN Required", $output);
+    }
+
+    public function testInvalidDeleteInvalidCredentials()
+    {
+        echo __FUNCTION__ . PHP_EOL;
+
+        $token = $this->privateGetStudentToken(); //get students token to test credential failure
+        $body = '';
+        $url = $this->base_api_url."/courses/99999";
+
+        $output = Testing::callAPIOverHTTP($url, Methods::DELETE, $body, $token, Testing::JSON);
+
+        $this->assertEquals("Non-Faculty members, are not allowed to delete Courses.", $output);
     }
 
 	private function privateTestModel(Course $model)

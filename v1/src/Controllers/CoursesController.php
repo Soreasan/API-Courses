@@ -17,23 +17,23 @@ class CoursesController
     {
         $pdo = DatabaseConnection::getInstance();
 
-        if (!isset($crn[0])) {
-            $sql = $pdo->prepare("SELECT c.courseCRN, c.courseYear, c.courseSemester, cd.courseNumber, cd.courseTitle FROM Courses c JOIN CourseData cd ON c.courseData_id = cd.courseData_id");
-            $sql->execute();
-            $sqlResults = $sql->fetchAll(\PDO::FETCH_CLASS, 'TestingCenter\Models\Course');
-            if (count($sqlResults) == 0) {
-                http_response_code(Http\StatusCodes::BAD_REQUEST);
-                exit("No Courses found");
-            }
-            return $sqlResults;
-        } else {
+        if (isset($crn[0])) {
             $sql = $pdo->prepare("SELECT c.courseCRN, c.courseYear, c.courseSemester, cd.courseNumber, cd.courseTitle FROM Courses c JOIN CourseData cd ON c.courseData_id = cd.courseData_id WHERE c.courseCRN = :courseCRN");
             $data = array("courseCRN" => $crn[0]);
             $sql->execute($data);
             $sqlResults = $sql->fetchAll(\PDO::FETCH_CLASS, 'TestingCenter\Models\Course');
             if (count($sqlResults) == 0) {
                 http_response_code(Http\StatusCodes::BAD_REQUEST);
-                exit("Course CRN not found");
+                exit("CourseCRN not found");
+            }
+            return $sqlResults;
+        } else {
+            $sql = $pdo->prepare("SELECT c.courseCRN, c.courseYear, c.courseSemester, cd.courseNumber, cd.courseTitle FROM Courses c JOIN CourseData cd ON c.courseData_id = cd.courseData_id");
+            $sql->execute();
+            $sqlResults = $sql->fetchAll(\PDO::FETCH_CLASS, 'TestingCenter\Models\Course');
+            if (count($sqlResults) == 0) {
+                http_response_code(Http\StatusCodes::BAD_REQUEST);
+                exit("No Courses found");
             }
             return $sqlResults;
         }
@@ -91,20 +91,22 @@ class CoursesController
             exit("Non-Faculty members, are not allowed to delete Courses.");
         }
 
-        if (!isset($crn[0])) {
-            http_response_code(Http\StatusCodes::BAD_REQUEST);
-            exit("CourseCRN Required");
-        } else {
-            try {
-                $pdo = DatabaseConnection::getInstance();
+        if (isset($crn[0])) {
+            $pdo = DatabaseConnection::getInstance();
 
+            $doesCourseExist = $this->checkIfCourseExists($pdo, $crn[0]);
+
+            if ($doesCourseExist) {
                 $statement = $pdo->prepare("DELETE FROM Courses where courseCRN = :courseCRN");
                 $data = array("courseCRN" => $crn[0]);
                 $statement->execute($data);
-            }catch(Error $e){
+            } else {
                 http_response_code(Http\StatusCodes::BAD_REQUEST);
-                exit("Invalid CourseCRN.");
+                exit("CourseCRN not found");
             }
+        } else {
+            http_response_code(Http\StatusCodes::BAD_REQUEST);
+            exit("CourseCRN Required");
         }
     }
 
@@ -155,7 +157,7 @@ class CoursesController
 
     private function createNewCourse($pdo, $input, $courseData_id)
     {
-        $doesCourseExist = $this->checkIfCourseExists($pdo, $input);
+        $doesCourseExist = $this->checkIfCourseExists($pdo, $input->getCourseCRN());
 
         if (!$doesCourseExist) {
             // CourseCRN doesnt exist. Make one.
@@ -170,7 +172,7 @@ class CoursesController
 
     private function updateCourse($pdo, $input, $courseData_id)
     {
-        $doesCourseExist = $this->checkIfCourseExists($pdo, $input);
+        $doesCourseExist = $this->checkIfCourseExists($pdo, $input->getCourseCRN());
 
         if ($doesCourseExist) {
             // CourseCRN doesnt exist. Make one.
@@ -183,10 +185,10 @@ class CoursesController
         }
     }
 
-    private function checkIfCourseExists($pdo, $input)
+    private function checkIfCourseExists($pdo, $crn)
     {
         $sql = $pdo->prepare("SELECT courseCRN FROM Courses WHERE courseCRN = :courseCRN");
-        $data = array("courseCRN" => $input->getCourseCRN());
+        $data = array("courseCRN" => $crn);
         $sql->execute($data);
         $sqlResults = $sql->fetchAll(\PDO::FETCH_ASSOC);
 
