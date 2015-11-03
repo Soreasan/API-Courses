@@ -10,7 +10,9 @@ use TestingCenter\Utilities\Cast;
 
 class CoursesControllerTest extends \PHPUnit_Framework_TestCase // backslash is in global namespace
 {
-	public function testValidPost()
+	private $base_api_url = "http://icarus.cs.weber.edu/~ap23106/cs3620/Assignments/TestingCenter";
+
+    public function testValidPost()
 	{
 		echo __FUNCTION__ . PHP_EOL;
 
@@ -25,14 +27,18 @@ class CoursesControllerTest extends \PHPUnit_Framework_TestCase // backslash is 
 				  "courseTitle": "Test Course"
 				}';
 
-		$url = "http://icarus.cs.weber.edu/~ap23106/cs3620/Assignments/TestingCenter/courses/";
+		$url = $this->base_api_url."/courses/";
 
 		$output = Testing::callAPIOverHTTP($url, Methods::POST, $body, $token, Testing::JSON);
 
 		$this->assertNotFalse($output); //False on error, otherwise it's the raw results.
 	}
 
-	public function testValidPut()
+
+    /**
+     * @depends testValidPost
+     */
+    public function testValidPut()
 	{
         echo __FUNCTION__ . PHP_EOL;
 
@@ -47,20 +53,23 @@ class CoursesControllerTest extends \PHPUnit_Framework_TestCase // backslash is 
 				  "courseTitle": "Test Course"
 				}';
 
-        $url = "http://icarus.cs.weber.edu/~ap23106/cs3620/Assignments/TestingCenter/courses/";
+        $url = $this->base_api_url."/courses/";
 
         $output = Testing::callAPIOverHTTP($url, Methods::PUT, $body, $token, Testing::JSON);
 
         $this->assertNotFalse($output); //False on error, otherwise it's the raw results.
 	}
 
+    /**
+     * @depends testValidPut
+     */
 	public function testValidGetOne()
 	{
 		echo __FUNCTION__ . PHP_EOL;
 
         $token = '';
         $body = '';
-        $url = "http://icarus.cs.weber.edu/~ap23106/cs3620/Assignments/TestingCenter/courses/99999";
+        $url = $this->base_api_url."/courses/99999";
 
         $output = Testing::callAPIOverHTTP($url, Methods::GET, $body, $token, Testing::JSON);
 
@@ -98,7 +107,7 @@ class CoursesControllerTest extends \PHPUnit_Framework_TestCase // backslash is 
 
         $token = '';
         $body = '';
-        $url = "http://icarus.cs.weber.edu/~ap23106/cs3620/Assignments/TestingCenter/courses/ThisIsAnInvalidCourseID";
+        $url = $this->base_api_url."/courses/ThisIsAnInvalidCourseID";
 
         $output = Testing::callAPIOverHTTP($url, Methods::GET, $body, $token, Testing::JSON);
 
@@ -120,7 +129,7 @@ class CoursesControllerTest extends \PHPUnit_Framework_TestCase // backslash is 
 				  "courseTitle": "Test Course"
 				}';
 
-        $url = "http://icarus.cs.weber.edu/~ap23106/cs3620/Assignments/TestingCenter/courses/";
+        $url = $this->base_api_url."/courses/";
 
         $output = Testing::callAPIOverHTTP($url, Methods::PUT, $body, $token, Testing::JSON);
 
@@ -142,7 +151,7 @@ class CoursesControllerTest extends \PHPUnit_Framework_TestCase // backslash is 
 				  "courseTitle": "Test Course"
 				}';
 
-        $url = "http://icarus.cs.weber.edu/~ap23106/cs3620/Assignments/TestingCenter/courses/";
+        $url = $this->base_api_url."/courses/";
 
         $output = Testing::callAPIOverHTTP($url, Methods::PUT, $body, $token, Testing::JSON);
 
@@ -164,7 +173,7 @@ class CoursesControllerTest extends \PHPUnit_Framework_TestCase // backslash is 
 				  "courseTitle": "Test Course"
 				}';
 
-        $url = "http://icarus.cs.weber.edu/~ap23106/cs3620/Assignments/TestingCenter/courses/";
+        $url = $this->base_api_url."/courses/";
 
         $output = Testing::callAPIOverHTTP($url, Methods::POST, $body, $token, Testing::JSON);
 
@@ -179,7 +188,7 @@ class CoursesControllerTest extends \PHPUnit_Framework_TestCase // backslash is 
 
         $body = '{}';
 
-        $url = "http://icarus.cs.weber.edu/~ap23106/cs3620/Assignments/TestingCenter/courses/";
+        $url = $this->base_api_url."/courses/";
 
         $output = Testing::callAPIOverHTTP($url, Methods::POST, $body, $token, Testing::JSON);
 
@@ -200,7 +209,7 @@ class CoursesControllerTest extends \PHPUnit_Framework_TestCase // backslash is 
 
         $token = $this->privateGetFacultyToken();
         $body = '';
-        $url = "http://icarus.cs.weber.edu/~ap23106/cs3620/Assignments/TestingCenter/courses/99999";
+        $url = $this->base_api_url."/courses/99999";
 
         $output = Testing::callAPIOverHTTP($url, Methods::DELETE, $body, $token, Testing::JSON);
 
@@ -219,7 +228,7 @@ class CoursesControllerTest extends \PHPUnit_Framework_TestCase // backslash is 
 	{
 		$token = "";
 		$body = "username=genericfac&password=Hello896";
-		$url = "http://icarus.cs.weber.edu/~ap23106/cs3620/Assignments/TestingCenter/tokens";
+		$url = $this->base_api_url."/tokens";
 
 		$output = Testing::callAPIOverHTTP($url, Methods::POST, $body, $token, Testing::FORM);
 
@@ -230,7 +239,7 @@ class CoursesControllerTest extends \PHPUnit_Framework_TestCase // backslash is 
 	{
 		$token = "";
 		$body = "username=generic&password=Hello357";
-		$url = "http://icarus.cs.weber.edu/~ap23106/cs3620/Assignments/TestingCenter/tokens";
+		$url = $this->base_api_url."/tokens";
 
 		$output = Testing::callAPIOverHTTP($url, Methods::POST, $body, $token, Testing::FORM);
 
