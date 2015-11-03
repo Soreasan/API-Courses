@@ -203,6 +203,19 @@ class CoursesControllerTest extends \PHPUnit_Framework_TestCase // backslash is 
 
     }
 
+    public function testInvalidDeleteInvalidCredentials()
+    {
+        echo __FUNCTION__ . PHP_EOL;
+
+        $token = $this->privateGetStudentToken(); //get students token to test credential failure
+        $body = '';
+        $url = $this->base_api_url."/courses/99999";
+
+        $output = Testing::callAPIOverHTTP($url, Methods::DELETE, $body, $token, Testing::JSON);
+
+        $this->assertEquals("Non-Faculty members, are not allowed to delete Courses.", $output);
+    }
+
     /**
      * @depends testValidPut
      */
