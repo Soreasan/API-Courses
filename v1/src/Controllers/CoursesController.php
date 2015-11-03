@@ -95,11 +95,16 @@ class CoursesController
             http_response_code(Http\StatusCodes::BAD_REQUEST);
             exit("CourseCRN Required");
         } else {
-            $pdo = DatabaseConnection::getInstance();
+            try {
+                $pdo = DatabaseConnection::getInstance();
 
-            $statement = $pdo->prepare("DELETE FROM Courses where courseCRN = :courseCRN");
-            $data = array("courseCRN" => $crn[0]);
-            $statement->execute($data);
+                $statement = $pdo->prepare("DELETE FROM Courses where courseCRN = :courseCRN");
+                $data = array("courseCRN" => $crn[0]);
+                $statement->execute($data);
+            }catch(Error $e){
+                http_response_code(Http\StatusCodes::BAD_REQUEST);
+                exit("Invalid CourseCRN.");
+            }
         }
     }
 
