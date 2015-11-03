@@ -22,6 +22,7 @@ class CoursesController
             $sql->execute();
             $sqlResults = $sql->fetchAll(\PDO::FETCH_CLASS, 'TestingCenter\Models\Course');
             if (count($sqlResults) == 0) {
+                http_response_code(Http\StatusCodes::BAD_REQUEST);
                 exit("No Courses found");
             }
             return $sqlResults;
@@ -31,6 +32,7 @@ class CoursesController
             $sql->execute($data);
             $sqlResults = $sql->fetchAll(\PDO::FETCH_CLASS, 'TestingCenter\Models\Course');
             if (count($sqlResults) == 0) {
+                http_response_code(Http\StatusCodes::BAD_REQUEST);
                 exit("Course CRN not found");
             }
             return $sqlResults;

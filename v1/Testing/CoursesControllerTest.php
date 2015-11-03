@@ -203,6 +203,9 @@ class CoursesControllerTest extends \PHPUnit_Framework_TestCase // backslash is 
 
     }
 
+    /**
+     * @depends testValidPut
+     */
     public function testValidDelete()
     {
         echo __FUNCTION__ . PHP_EOL;
